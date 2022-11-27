@@ -1,0 +1,58 @@
+﻿@page "/topArt"
+
+@using GraffLifeWeb.Data
+@inject TopArtService TopArtService
+
+<h1 style="padding-bottom:18px;">Highest Fame Art</h1>
+@if (topart == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <br />
+    <div class="gallery">
+        @for (int i = (navNdx-1)*12; i < topart.Count() && i < navNdx * 12; ++i)
+        {
+            var img64 = System.Convert.ToBase64String(topart[i].photo);
+            var className = "gallery__item--" + (i + 1 - (navNdx - 1) * 12);
+            <figure class=@className>
+                <a href="Art/@topart[i].UserName/@topart[i].photoId">
+                    <img src="data:image/png;base64,@img64" class="gallery__img" />
+                </a>
+                <div>Writer: @topart[i].UserName</div><div>Fame: @topart[i].fame</div>
+            </figure>
+        }
+    </div>
+    // Gallery navigation
+    if(topart.Count() > 12)
+    {
+        var navLength = topart.Count() / 12 + (topart.Count()%12==0 ? 0 : 1);
+        <div class="gallery-nav">
+            @for (int j = 1; j <= navLength; ++j)
+            {
+                var buttonNumber = j;
+                <button class="btn btn-primary" @onclick="@(() => navClick(buttonNumber))">@j</button>
+            }
+        </div>
+        // TODO: Gallery nav should be look like 1 2 3 4 ... 42 <---- last number
+        //          so, we need to get count of total photos first... eventually count will always be 1000 once we've reached that many photos in DB
+        // TODO: Could you atleast factor out the navigation?... this should be pretty uniform accross galleries and ranking lists
+    }
+}
+
+@code {
+    List<PhotoResponse> topart;
+    int navNdx = 1;
+
+    protected override void OnInitialized()
+    {
+        topart = TopArtService.GetTopArtAsync();
+    }
+
+    protected void navClick(int i)
+    {
+        navNdx = i;
+        StateHasChanged();
+    }
+}

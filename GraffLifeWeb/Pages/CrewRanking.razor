@@ -1,0 +1,80 @@
+﻿@page "/crewRanking"
+
+@using GraffLifeWeb.Data
+@using GraffLifeWeb.Helpers
+@inject RankingService RankingService
+<!--
+<h1 style="padding-bottom:18px;">Artist Ranking</h1>
+@if (topUsers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <br />
+    <div class="rankingList">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Fame</th>
+                    <th>Abbreviation</th>
+                    <th>Name</th>
+                    <th>Main Crew</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = (navNdx - 1) * 50; i < topCrews.Count() && i < navNdx * 50; ++i)
+                {
+                    <tr>
+                        <td>@topCrews[i].fame</td>
+                        <td>
+                            <img src="data:image/png;base64,@img64" />
+                        </td>
+                        <td>
+                            <a href="@($"/Artist/{topCrews[i].UserName}/{topCrews[i].userId}")">@topCrews[i].UserName</a>
+                        </td>
+                        <td>@topCrews[i].level - @Helpers.GetRank(topUsers[i].level) </td>
+                        <td>
+                            @if (topCrews[i].mainCrewId == 0)
+                            {
+                                <span>Oner</span>
+                            }
+                            else
+                            {
+                                <a href="@($"/Crew/{topCrews[i].mainCrewId}")">@topCrews[i].abbreviation</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    // Gallery navigation
+    if (topUsers.Count() > 50)
+    {
+        var navLength = topUsers.Count() / 50 + (topUsers.Count() % 50 == 0 ? 0 : 1);
+        <div class="gallery-nav">
+            @for (int j = 1; j <= navLength; ++j)
+            {
+                var buttonNumber = j;
+                <button class="btn btn-primary" @onclick="@(() => navClick(buttonNumber))">@j</button>
+            }
+        </div>
+    }
+}
+    -->
+@code {
+    List<UserInfoResponse2> topUsers;
+    int navNdx = 1;
+
+    protected override void OnInitialized()
+    {
+        topUsers = RankingService.GetUserRankingsAsync();
+    }
+
+    protected void navClick(int i)
+    {
+        navNdx = i;
+        StateHasChanged();
+    }
+}

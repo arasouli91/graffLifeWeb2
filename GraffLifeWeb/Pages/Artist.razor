@@ -1,0 +1,150 @@
+﻿@page "/Artist/{username}/{userId}"
+
+@using GraffLifeWeb.Data
+@using GraffLifeWeb.Helpers
+@inject ArtService ArtService
+@inject UserInfoService UserInfoService
+@inject CrewsService CrewsService
+@inject TopArtService TopArtService
+
+<h1 style="padding-bottom:18px;">@(username)'s Artist Profile</h1>
+
+@if (userInfo == null)
+{
+    <p><em>Loading user information...</em></p>
+}
+else
+{
+    string img64 = "";////TODO: Need a default avatar image
+    if (userInfo.avatar != null)
+    {
+        img64 = System.Convert.ToBase64String(userInfo.avatar);
+    }
+    <div class="art-page-user">
+        <div style="padding-right:30px;">
+            <img src="data:image/png;base64,@img64" />
+        </div>
+        <div>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th scope="row">Name:</th>
+                        <td>@username</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Fame:</th>
+                        <td>@userInfo.fame</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Level:</th>
+                        <td>@userInfo.level</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Rank:</th>
+                        <td>@Helpers.GetRank(userInfo.level)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Writing Since:</th>
+                        <td>@userInfo.memberSince</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Crews:
+                        </th>
+                        <td>
+                            @if (crewMemberships.Count == 0)
+                            {
+                                <div>Oner</div>
+                            }
+                            else
+                            {
+                                @foreach (var crew in crewMemberships)
+                                {
+                                    var link = $"/Crew/{crew.crewId}";
+                                    <a href="@link" style="display:block">@crew.abbreviation - Fame: @crew.fame</a>
+                                    <br/>
+                                }
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@if (art == null)
+{
+    <p><em>Loading art gallery...</em></p>
+}
+else
+{
+    <div>Sort by: <select value="@sortValue" @onchange="@handleSort"><option>Fame</option><option>Recent</option></select></div>
+    <br />
+    <div class="gallery">
+        @for (int i = (navNdx - 1) * 12; i < art.Count() && i < navNdx * 12; ++i)
+        {
+            var img64 = System.Convert.ToBase64String(art[i].photo);
+            var className = "gallery__item--" + (i + 1 - (navNdx - 1) * 12);
+            <figure class=@className>
+                <a href="Art/@username/@art[i].photoId">
+                    <img src="data:image/png;base64,@img64" class="gallery__img" />
+                </a>
+                <div>Fame: @art[i].fame</div>
+            </figure>
+        }
+    </div>
+    // Gallery navigation
+    if (art.Count() > 12)
+    {
+        var navLength = art.Count() / 12 + (art.Count() % 12 == 0 ? 0 : 1);
+        <div class="gallery-nav">
+            @for (int j = 1; j <= navLength; ++j)
+            {
+                var buttonNumber = j;
+                <button class="btn btn-primary" @onclick="@(() => navClick(buttonNumber))">@j</button>
+            }
+        </div>
+    }
+}
+
+
+@code {
+    [ParameterAttribute]
+    public string username { get; set; }
+
+    [ParameterAttribute]
+    public string userId { get; set; }
+
+    UserInfoResponse userInfo;
+    List<CrewMembershipResponse> crewMemberships;
+
+    List<PhotoResponse2> art;
+    string sortValue = "Fame";
+    int navNdx = 1;
+
+    protected override void OnInitialized()
+    {
+        userInfo = UserInfoService.GetUserInfoAsync(userId);
+        crewMemberships = CrewsService.GetMemberships(userId);
+        art = TopArtService.GetMyArtAsync(userId);
+    }
+
+    protected void handleSort(ChangeEventArgs e)
+    {
+        sortValue = e.Value.ToString();
+        art = TopArtService.GetMyArtAsync(userId, sortValue == "Recent");
+        StateHasChanged();
+    }
+
+    protected void navClick(int i)
+    {
+        navNdx = i;
+        StateHasChanged();
+    }
+
+    public void OnGet(string username) ///// What is this doing?... needed because username is rendered initially?
+    {
+        this.username = username;
+    }
+}

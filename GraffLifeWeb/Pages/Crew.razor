@@ -1,0 +1,119 @@
+﻿@page "/Crew/{crewId}"
+
+@using GraffLifeWeb.Data
+@using GraffLifeWeb.Helpers
+@inject ArtService ArtService
+@inject UserInfoService UserInfoService
+@inject SessionService SessionService
+@inject CrewsService CrewsService
+
+<h1 style="padding-bottom:18px;">Crew Info</h1>
+
+
+@if (art == null)/////TODO: NEED SINGLE PIECE OF ART CHOSEN TO REPRESENT CREW
+{
+    <p><em>Loading photo...</em></p>
+}
+else
+{
+    var img64 = System.Convert.ToBase64String(art.photo);
+    <div class="art-page-image">
+        <img src="data:image/png;base64,@img64" />
+    </div>
+}
+@if (crewInfo == null || crewMembers == null)
+{
+    <p><em>Loading crew information...</em></p>
+}
+else
+{
+<div class="crew-page">
+    <div style="padding-right:30px;">
+        <!--Crew info-->
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th scope="row">Name:</th>
+                    <td>@crewInfo.name</td>
+                </tr>
+                <tr>
+                    <th scope="row">Abbreviation:</th>
+                    <td>@crewInfo.abbreviation</td>
+                </tr>
+                <tr>
+                    <th scope="row">Fame:</th>
+                    <td>@crewInfo.fame</td>
+                </tr>
+                <tr>
+                    <th scope="row">Head:</th>
+                    <td>@crewInfo.UserName</td>
+                </tr>
+                <tr>
+                    <th scope="row">Member Count:</th>
+                    <td>@crewMembers.Count</td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        Description:
+                    </th>
+                    <td>
+                        @crewInfo.description
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <h3>CREW ROSTER</h3>
+        <!--For now, we just display sorted by fame, TODO: later we would need to take into account crew rank, like head, founder, recruit. Give 2 sorting options.
+        The head member is display off to the right, so it doesn't matter if he's not at the top of the list anyways... for now-->
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Fame</th>
+                    <th>Level/Rank</th>
+                    <th>Crew Rank</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var member in crewMembers)
+                {
+                    <tr>
+                        <!--<th scope="row">@i</th> This would make it numbered.-->
+                        <td><a href="@($"/Artist/{member.UserName}/{member.userId}")">@member.UserName</a></td>
+                        <td>@member.fame</td>
+                        <td>@member.level - @Helpers.GetRank(member.level) </td>
+                        <td>
+                            <!--TODO: WE NEED CREW RANK TO BE IMPLEMENTED-->
+                        </td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}
+
+
+@code {
+    [ParameterAttribute]
+    public string crewId { get; set; }
+
+    PhotoResponse2 art;
+    UserInfoResponse userInfo;
+
+    List<CrewMemberResponse> crewMembers;
+    CrewInfoResponse crewInfo;
+
+    protected override void OnInitialized()
+    {
+        //art = ArtService.GetArtAsync(int.Parse(photoId));
+        //userInfo = UserInfoService.GetUserInfoAsync(id);
+
+        crewMembers = CrewsService.GetMembers(int.Parse(crewId));
+        crewInfo = CrewsService.GetCrewInfo(int.Parse(crewId));
+    }
+}

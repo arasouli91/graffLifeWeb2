@@ -1,0 +1,70 @@
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">GraffLifeWeb</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="topArt">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Famous Art
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="artistRanking">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Artist Ranking
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="crewRanking">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Crew Ranking
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="devBlog">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Development Blog
+            </NavLink>
+        </li>
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item px-3">
+                    <br />
+                    <div class="nav-personal-menu">Personal Menu</div>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="myPage">
+                        <span class="oi oi-person" aria-hidden="true"></span> My Profile
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="myArt">
+                        <span class="oi oi-list-rich" aria-hidden="true"></span> My Art
+                    </NavLink>
+                </li>
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="memberships">
+                        <span class="oi oi-people" aria-hidden="true"></span> Memberships
+                    </NavLink>
+                </li>
+            </Authorized>
+        </AuthorizeView>
+    </ul>
+</div>
+
+@code {
+    bool collapseNavMenu = true;
+
+    string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

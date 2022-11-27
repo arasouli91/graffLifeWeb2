@@ -1,0 +1,82 @@
+﻿@page "/myArt"
+
+@using GraffLifeWeb.Data
+@inject TopArtService TopArtService
+@inject SessionService SessionService
+
+<AuthorizeView>
+    <Authorized>
+        @(username = context.User.Identity.Name)
+    </Authorized>
+</AuthorizeView>
+
+<h1 style="padding-bottom:18px;">My Art Gallery</h1>
+@if (myart == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>Sort by: <select value="@sortValue" @onchange="@handleSort"><option>Fame</option><option>Recent</option></select></div>
+    <br />
+    <div class="gallery">
+        @for (int i = (navNdx-1)*12; i < myart.Count() && i < navNdx * 12; ++i)
+        {
+            var img64 = System.Convert.ToBase64String(myart[i].photo);
+            var className = "gallery__item--" + (i + 1 - (navNdx - 1) * 12);
+            <figure class=@className>
+                <a href="Art/@username/@myart[i].photoId">
+                    <img src="data:image/png;base64,@img64" class="gallery__img" />
+                </a>
+                <div>Fame: @myart[i].fame</div>
+            </figure>
+        }
+    </div>
+    // Gallery navigation
+    if(myart.Count() > 12)
+    {
+        var navLength = myart.Count() / 12 + (myart.Count()%12==0 ? 0 : 1);
+        <div class="gallery-nav">
+            @for (int j = 1; j <= navLength; ++j)
+            {
+                var buttonNumber = j;
+                <button class="btn btn-primary" @onclick="@(() => navClick(buttonNumber))">@j</button>
+            }
+        </div>
+    }
+}
+
+@code {
+    List<PhotoResponse2> myart;
+    string sortValue = "Fame";
+    string username = "";
+    int navNdx = 1;
+
+    protected void handleSort(ChangeEventArgs e)
+    {
+        sortValue = e.Value.ToString();
+        myart = TopArtService.GetMyArtAsync(SessionService.GetUserId(username), sortValue == "Recent");
+        StateHasChanged();
+    }
+
+    protected void navClick(int i)
+    {
+        navNdx = i;
+        StateHasChanged();
+
+        /////What about handling css of button? ...we can change the value of the class here? but each button would need a class(either clicked or blank)?...a list of classes?
+    }
+
+    // Get the art after first render because we are pulling the username from the view code.... maybe there is a better way to get username?
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender && myart == null)
+        {
+            myart = TopArtService.GetMyArtAsync(SessionService.GetUserId(username));
+            StateHasChanged();
+        }
+    }
+
+}
+
+

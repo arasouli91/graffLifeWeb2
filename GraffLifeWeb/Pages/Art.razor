@@ -1,0 +1,120 @@
+﻿@page "/Art/{username}/{photoId}"
+
+@using GraffLifeWeb.Data
+@using GraffLifeWeb.Helpers
+@inject ArtService ArtService
+@inject UserInfoService UserInfoService
+@inject SessionService SessionService
+@inject CrewsService CrewsService
+
+<h1 style="padding-bottom:18px;">@(username)'s Art</h1>
+
+@if (art == null)
+{
+    <p><em>Loading photo...</em></p>
+}
+else
+{
+    var img64 = System.Convert.ToBase64String(art.photo);
+    <div class="art-page-image">
+        <img src="data:image/png;base64,@img64" />
+        Date uploaded: @art.date.Date
+    </div>
+}
+@if (userInfo == null)
+{
+    <p><em>Loading user information...</em></p>
+}
+else
+{
+    string img64 = "";////Need a default avatar image
+    if (userInfo.avatar != null)
+    {
+        img64 = System.Convert.ToBase64String(userInfo.avatar);
+    }
+    <div class="art-page-user">
+        <div style="padding-right:30px;">
+            <img src="data:image/png;base64,@img64" />
+        </div>
+        <br/>
+        <div>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th scope="row">Name:</th>
+                        <td>
+                            <a href="Artist/@username/@userId">
+                                @username
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Fame:</th>
+                        <td>@userInfo.fame</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Level:</th>
+                        <td>@userInfo.level</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Rank:</th>
+                        <td>@Helpers.GetRank(userInfo.level)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Writing Since:</th>
+                        <td>@userInfo.memberSince</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            Crews:
+                        </th>
+                        <td>
+                            @if (crewMemberships.Count == 0)
+                            {
+                                <div>Oner</div>
+                            }
+                            else
+                            {
+                                @foreach(var crew in crewMemberships)
+                                {
+                                    var link = $"/Crew/{crew.crewId}";
+                                    <a href="@link">@crew.abbreviation - Fame: @crew.fame</a>
+                                    <br/>
+                                }
+                            }
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    [ParameterAttribute]
+    public string username { get; set; }
+
+    [ParameterAttribute]
+    public string photoId { get; set; }
+
+    string userId;
+
+    PhotoResponse2 art;
+    UserInfoResponse userInfo;
+    List<CrewMembershipResponse> crewMemberships;
+
+    protected override void OnInitialized()
+    {
+        userId = SessionService.GetUserId(username, false);
+        art = ArtService.GetArtAsync(int.Parse(photoId));
+        userInfo = UserInfoService.GetUserInfoAsync(userId);
+        crewMemberships = CrewsService.GetMemberships(userId);
+    }
+
+    public void OnGet(string username) ///// What is this doing?... why didn't we do this for photoId?...bcuz username is rendered initially?
+    {
+        this.username = username;
+    }
+
+    /// WE COULD OPTIONALLY PASS IN THE IMAGE AS A QUERY PARAM,THAT WAY WE CAN STILL ACCESS IT WITH A SIMPLE URL, BUT SAVE DB RESOURCE OTHER TIMES, BUT THEN THAT MAKES THE URL TOO UGLY TO COPY AND PASTE?
+}
